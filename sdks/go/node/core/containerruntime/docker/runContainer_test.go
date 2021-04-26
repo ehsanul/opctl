@@ -195,16 +195,12 @@ var _ = Context("RunContainer", func() {
 
 			/* assert */
 			actualCtx,
-				actualContainerCall,
-				actualImagePullCreds,
-				actualImageRef,
+				actualReq,
 				actualRootCallID,
 				actualEventPublisher := fakeImagePuller.PullArgsForCall(0)
 
 			Expect(actualCtx).To(Equal(providedCtx))
-			Expect(actualContainerCall.ContainerID).To(Equal(providedReq.ContainerID))
-			Expect(actualImagePullCreds).To(Equal(providedReq.Image.PullCreds))
-			Expect(actualImageRef).To(Equal(*providedReq.Image.Ref))
+			Expect(actualReq).To(Equal(providedReq))
 			Expect(actualRootCallID).To(Equal(providedRootCallID))
 			Expect(actualEventPublisher).To(Equal(providedEventChannel))
 		})

@@ -50,18 +50,18 @@ type FakeNode struct {
 		result1 []*model.DirEntry
 		result2 error
 	}
-	StartOpStub        func(context.Context, model.StartOpReq) (string, error)
+	StartOpStub        func(context.Context, model.StartOpReq) (map[string]*model.Value, error)
 	startOpMutex       sync.RWMutex
 	startOpArgsForCall []struct {
 		arg1 context.Context
 		arg2 model.StartOpReq
 	}
 	startOpReturns struct {
-		result1 string
+		result1 map[string]*model.Value
 		result2 error
 	}
 	startOpReturnsOnCall map[int]struct {
-		result1 string
+		result1 map[string]*model.Value
 		result2 error
 	}
 	invocations      map[string][][]interface{}
@@ -257,7 +257,7 @@ func (fake *FakeNode) ListDescendantsReturnsOnCall(i int, result1 []*model.DirEn
 	}{result1, result2}
 }
 
-func (fake *FakeNode) StartOp(arg1 context.Context, arg2 model.StartOpReq) (string, error) {
+func (fake *FakeNode) StartOp(arg1 context.Context, arg2 model.StartOpReq) (map[string]*model.Value, error) {
 	fake.startOpMutex.Lock()
 	ret, specificReturn := fake.startOpReturnsOnCall[len(fake.startOpArgsForCall)]
 	fake.startOpArgsForCall = append(fake.startOpArgsForCall, struct {
@@ -282,7 +282,7 @@ func (fake *FakeNode) StartOpCallCount() int {
 	return len(fake.startOpArgsForCall)
 }
 
-func (fake *FakeNode) StartOpCalls(stub func(context.Context, model.StartOpReq) (string, error)) {
+func (fake *FakeNode) StartOpCalls(stub func(context.Context, model.StartOpReq) (map[string]*model.Value, error)) {
 	fake.startOpMutex.Lock()
 	defer fake.startOpMutex.Unlock()
 	fake.StartOpStub = stub
@@ -295,28 +295,28 @@ func (fake *FakeNode) StartOpArgsForCall(i int) (context.Context, model.StartOpR
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeNode) StartOpReturns(result1 string, result2 error) {
+func (fake *FakeNode) StartOpReturns(result1 map[string]*model.Value, result2 error) {
 	fake.startOpMutex.Lock()
 	defer fake.startOpMutex.Unlock()
 	fake.StartOpStub = nil
 	fake.startOpReturns = struct {
-		result1 string
+		result1 map[string]*model.Value
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeNode) StartOpReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeNode) StartOpReturnsOnCall(i int, result1 map[string]*model.Value, result2 error) {
 	fake.startOpMutex.Lock()
 	defer fake.startOpMutex.Unlock()
 	fake.StartOpStub = nil
 	if fake.startOpReturnsOnCall == nil {
 		fake.startOpReturnsOnCall = make(map[int]struct {
-			result1 string
+			result1 map[string]*model.Value
 			result2 error
 		})
 	}
 	fake.startOpReturnsOnCall[i] = struct {
-		result1 string
+		result1 map[string]*model.Value
 		result2 error
 	}{result1, result2}
 }

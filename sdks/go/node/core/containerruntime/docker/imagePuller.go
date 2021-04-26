@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
+	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	dockerClientPkg "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
@@ -18,8 +20,6 @@ type imagePuller interface {
 	Pull(
 		ctx context.Context,
 		containerCall *model.ContainerCall,
-		imagePullCreds *model.Creds,
-		imageRef string,
 		rootCallID string,
 		eventChannel chan model.Event,
 	) error
@@ -40,13 +40,16 @@ type _imagePuller struct {
 func (ip _imagePuller) Pull(
 	ctx context.Context,
 	containerCall *model.ContainerCall,
-	imagePullCreds *model.Creds,
-	imageRef string,
 	rootCallID string,
 	eventChannel chan model.Event,
 ) error {
-	_, _, err := ip.dockerClient.ImageInspectWithRaw(ctx, imageRef)
-	if err == nil {
+	imageRef := *containerCall.Image.Ref
+
+	needsPull, err := ip.doesImageNeedPull(ctx, imageRef, eventChannel)
+	if err != nil {
+		return err
+	}
+	if !needsPull {
 		eventChannel <- model.Event{
 			Timestamp: time.Now().UTC(),
 			ContainerStdOutWrittenTo: &model.ContainerStdOutWrittenTo{
@@ -56,9 +59,10 @@ func (ip _imagePuller) Pull(
 				RootCallID:  rootCallID,
 			},
 		}
-
 		return nil
 	}
+
+	imagePullCreds := containerCall.Image.PullCreds
 
 	imagePullOptions := types.ImagePullOptions{}
 	if imagePullCreds != nil &&
@@ -98,4 +102,31 @@ func (ip _imagePuller) Pull(
 		}
 		jm.Display(stdOutWriter, false)
 	}
+}
+
+func (ip _imagePuller) doesImageNeedPull(
+	ctx context.Context,
+	imageRef string,
+	eventChannel chan model.Event,
+) (bool, error) {
+	// Skip pulling for non-tagged images that already are present
+	// This reduces the chance of hitting docker rate limiting errors
+	// and speeds up execution.
+	ref, err := reference.ParseAnyReference(strings.ToLower(imageRef))
+	if err != nil {
+		return true, err
+	}
+	named, err := reference.ParseNormalizedNamed(ref.String())
+	if err != nil {
+		return true, err
+	}
+	if tagged, ok := named.(reference.Tagged); ok && tagged.Tag() != "latest" {
+		_, _, err := ip.dockerClient.ImageInspectWithRaw(ctx, imageRef)
+		if err == nil {
+			return false, nil
+		}
+		// this err can be ignored, since it's expected to be "image not found"
+	}
+
+	return true, nil
 }
