@@ -3,11 +3,11 @@ package core
 import (
 	"context"
 	"path/filepath"
-	"regexp"
 
 	"github.com/opctl/opctl/sdks/go/model"
 	"github.com/opctl/opctl/sdks/go/opspec"
 	"github.com/opctl/opctl/sdks/go/opspec/interpreter/call/op/outputs"
+	"github.com/opctl/opctl/sdks/go/opspec/interpreter/reference"
 	"github.com/opctl/opctl/sdks/go/opspec/opfile"
 )
 
@@ -110,7 +110,7 @@ func (oc _opCaller) Call(
 		if boundValue == "" {
 			// implicit value
 			boundValue = boundName
-		} else if !regexp.MustCompile("^\\$\\(.+\\)$").MatchString(boundValue) {
+		} else if !reference.ReferenceRegexp.MatchString(boundValue) {
 			// handle obsolete syntax by swapping order
 			prevBoundName := boundName
 			boundName = boundValue

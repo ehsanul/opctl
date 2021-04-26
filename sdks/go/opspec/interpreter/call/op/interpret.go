@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"regexp"
 
 	"github.com/opctl/opctl/sdks/go/data"
 	"github.com/opctl/opctl/sdks/go/data/fs"
@@ -13,6 +12,7 @@ import (
 	"github.com/opctl/opctl/sdks/go/model"
 	"github.com/opctl/opctl/sdks/go/opspec/interpreter/call/op/inputs"
 	"github.com/opctl/opctl/sdks/go/opspec/interpreter/dir"
+	"github.com/opctl/opctl/sdks/go/opspec/interpreter/reference"
 	"github.com/opctl/opctl/sdks/go/opspec/opfile"
 	"github.com/pkg/errors"
 )
@@ -29,7 +29,7 @@ func Interpret(
 	scratchDirPath := filepath.Join(dataDirPath, "dcg", opID)
 
 	var opPath string
-	if regexp.MustCompile("^\\$\\(.+\\)$").MatchString(opCallSpec.Ref) {
+	if reference.ReferenceRegexp.MatchString(opCallSpec.Ref) {
 		// attempt to process as a variable reference since its variable reference like.
 		dirValue, err := dir.Interpret(
 			scope,

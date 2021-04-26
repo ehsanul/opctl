@@ -2,7 +2,6 @@ package file
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/opctl/opctl/sdks/go/opspec/interpreter/reference"
 	"github.com/pkg/errors"
@@ -29,7 +28,7 @@ func Interpret(
 ) (*model.Value, error) {
 	expressionAsString, expressionIsString := expression.(string)
 
-	if expressionIsString && regexp.MustCompile("^\\$\\(.+\\)$").MatchString(expressionAsString) {
+	if expressionIsString && reference.ReferenceRegexp.MatchString(expressionAsString) {
 		var opts *model.ReferenceOpts
 		if createIfNotExist {
 			opts = &model.ReferenceOpts{

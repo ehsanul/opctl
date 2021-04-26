@@ -2,7 +2,6 @@ package dir
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/opctl/opctl/sdks/go/data/coerce"
 	"github.com/opctl/opctl/sdks/go/model"
@@ -27,7 +26,7 @@ func Interpret(
 ) (*model.Value, error) {
 	switch expression := expression.(type) {
 	case string:
-		if regexp.MustCompile("^\\$\\(.+\\)$").MatchString(expression) {
+		if reference.ReferenceRegexp.MatchString(expression) {
 			var opts *model.ReferenceOpts
 			if createIfNotExist {
 				opts = &model.ReferenceOpts{

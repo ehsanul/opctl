@@ -3,7 +3,6 @@ package value
 import (
 	"fmt"
 	"io/ioutil"
-	"regexp"
 
 	"github.com/opctl/opctl/sdks/go/model"
 	"github.com/opctl/opctl/sdks/go/opspec"
@@ -87,7 +86,7 @@ func Interpret(
 		}
 		return model.Value{Array: &value}, nil
 	case string:
-		if regexp.MustCompile("^\\$\\(.+\\)$").MatchString(typedValueExpression) {
+		if reference.ReferenceRegexp.MatchString(typedValueExpression) {
 			// attempt to process as a reference since its reference like.
 			// @TODO: make more exact. reference.Interpret can err for reasons beyond not being a reference.
 			value, err := reference.Interpret(

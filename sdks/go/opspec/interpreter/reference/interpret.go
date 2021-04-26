@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
-	"github.com/opctl/opctl/sdks/go/internal/uniquestring"
-	"github.com/opctl/opctl/sdks/go/opspec/interpreter/reference/direntry"
-	"github.com/opctl/opctl/sdks/go/opspec/interpreter/reference/identifier/unbracketed"
-
 	"github.com/opctl/opctl/sdks/go/data/coerce"
-
+	"github.com/opctl/opctl/sdks/go/internal/uniquestring"
 	"github.com/opctl/opctl/sdks/go/model"
+	"github.com/opctl/opctl/sdks/go/opspec/interpreter/reference/direntry"
 	"github.com/opctl/opctl/sdks/go/opspec/interpreter/reference/identifier/bracketed"
+	"github.com/opctl/opctl/sdks/go/opspec/interpreter/reference/identifier/unbracketed"
 )
 
 const (
@@ -23,6 +22,8 @@ const (
 	RefStart  = string(operator) + string(refOpener)
 	RefEnd    = string(refCloser)
 )
+
+var ReferenceRegexp = regexp.MustCompile(`^` + regexp.QuoteMeta(RefStart) + `.+` + regexp.QuoteMeta(RefEnd) + `$`)
 
 // Interpret a ref of the form:
 // /p1.ext
