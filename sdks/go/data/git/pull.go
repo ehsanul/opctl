@@ -9,52 +9,43 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/opctl/opctl/sdks/go/model"
 	"github.com/pkg/errors"
 )
 
 // Pull pulls 'dataRef' to 'path'
-// nil pullCreds will be ignored
 //
 // expected errs:
 //  - ErrDataProviderAuthentication on authentication failure
 //  - ErrDataProviderAuthorization on authorization failure
-func Pull(
+func (gp *_git) pull(
 	ctx context.Context,
-	path string,
-	dataRef string,
-	authOpts *model.Creds,
+	dataRef *ref,
 ) error {
+	opPath := dataRef.ToPath(gp.basePath)
 
-	parsedPkgRef, err := parseRef(dataRef)
+	auth, err := ssh.NewSSHAgentAuth("git")
 	if err != nil {
-		return errors.Wrap(err, "invalid git ref")
+		return errors.Wrap(err, "failed to connect to ssh agent")
 	}
-
-	opPath := parsedPkgRef.ToPath(path)
 
 	cloneOptions := &git.CloneOptions{
-		URL:           fmt.Sprintf("https://%v", parsedPkgRef.Name),
-		ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/tags/%v", parsedPkgRef.Version)),
+		URL:           fmt.Sprintf("ssh://git@%s", dataRef.Name),
+		ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/tags/%s", dataRef.Version)),
 		Depth:         1,
 		Progress:      os.Stdout,
+		Auth:          auth,
 	}
 
-	if authOpts != nil {
-		cloneOptions.Auth = &http.BasicAuth{
-			Username: authOpts.Username,
-			Password: authOpts.Password,
-		}
-	}
-
-	if _, err := git.PlainClone(
+	if _, err := git.PlainCloneContext(
+		ctx,
 		opPath,
 		false,
 		cloneOptions,
 	); err != nil {
 		if _, ok := err.(git.NoMatchingRefSpecError); ok {
-			return fmt.Errorf("version '%s' not found", parsedPkgRef.Version)
+			return fmt.Errorf("version '%s' not found", dataRef.Version)
 		}
 		if errors.Is(err, transport.ErrAuthenticationRequired) {
 			return model.ErrDataProviderAuthentication{}
@@ -62,15 +53,15 @@ func Pull(
 		if errors.Is(err, transport.ErrAuthorizationFailed) {
 			return model.ErrDataProviderAuthorization{}
 		}
-		if errors.Is(err, git.ErrRepositoryAlreadyExists) {
-			// if the repository already exists, it's already been cloned and we can
-			// procede. Maybe a concurrent puller got it?
-			return nil
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) || err == ctx.Err() {
+			fmt.Fprintf(os.Stderr, "cleaning up %v\n", dataRef)
+			err := os.RemoveAll(opPath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to cleanup partially downloaded op: %v\n", err)
+			}
 		}
 		return err
 	}
 
-	// remove pkg '.git' sub dir
 	return os.RemoveAll(filepath.Join(opPath, ".git"))
-
 }
