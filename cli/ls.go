@@ -36,7 +36,6 @@ func ls(
 	dirHandle, err := dataResolver.Resolve(
 		ctx,
 		dirRef,
-		nil,
 	)
 	if err != nil {
 		return err

@@ -12,19 +12,14 @@ import (
 // New returns a data provider which sources pkgs from a node
 // A node now represents a local installation of opctl, where pkgs can be
 // installed into opctl's data directory.
-func New(
-	node node.Node,
-	pullCreds *model.Creds,
-) model.DataProvider {
+func New(node node.Node) model.DataProvider {
 	return _node{
-		node:      node,
-		pullCreds: pullCreds,
+		node: node,
 	}
 }
 
 type _node struct {
-	node      node.Node
-	pullCreds *model.Creds
+	node node.Node
 }
 
 func (np _node) Label() string {
@@ -40,12 +35,11 @@ func (np _node) TryResolve(
 	if _, err := np.node.ListDescendants(
 		ctx,
 		model.ListDescendantsReq{
-			PkgRef:    dataRef,
-			PullCreds: np.pullCreds,
+			PkgRef: dataRef,
 		},
 	); err != nil {
 		return nil, err
 	}
 
-	return newHandle(np.node, dataRef, np.pullCreds), nil
+	return newHandle(np.node, dataRef), nil
 }

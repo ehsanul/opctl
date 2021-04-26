@@ -13,7 +13,6 @@ import (
 	"github.com/opctl/opctl/sdks/go/model"
 	"github.com/opctl/opctl/sdks/go/opspec/interpreter/call/op/inputs"
 	"github.com/opctl/opctl/sdks/go/opspec/interpreter/dir"
-	"github.com/opctl/opctl/sdks/go/opspec/interpreter/str"
 	"github.com/opctl/opctl/sdks/go/opspec/opfile"
 	"github.com/pkg/errors"
 )
@@ -27,25 +26,7 @@ func Interpret(
 	parentOpPath string,
 	dataDirPath string,
 ) (*model.OpCall, error) {
-
 	scratchDirPath := filepath.Join(dataDirPath, "dcg", opID)
-
-	var pkgPullCreds *model.Creds
-	if pullCredsSpec := opCallSpec.PullCreds; pullCredsSpec != nil {
-		pkgPullCreds = &model.Creds{}
-		var err error
-		interpretdUsername, err := str.Interpret(scope, pullCredsSpec.Username)
-		if err != nil {
-			return nil, err
-		}
-		pkgPullCreds.Username = *interpretdUsername.String
-
-		interpretdPassword, err := str.Interpret(scope, pullCredsSpec.Password)
-		if err != nil {
-			return nil, err
-		}
-		pkgPullCreds.Password = *interpretdPassword.String
-	}
 
 	var opPath string
 	if regexp.MustCompile("^\\$\\(.+\\)$").MatchString(opCallSpec.Ref) {
@@ -65,7 +46,7 @@ func Interpret(
 			ctx,
 			opCallSpec.Ref,
 			fs.New(parentOpPath, filepath.Dir(parentOpPath)),
-			git.New(filepath.Join(dataDirPath, "ops"), pkgPullCreds),
+			git.New(filepath.Join(dataDirPath, "ops")),
 		)
 		if err != nil {
 			return nil, err

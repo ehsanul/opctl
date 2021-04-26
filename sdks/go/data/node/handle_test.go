@@ -40,7 +40,6 @@ var _ = Context("handle", func() {
 			Expect(actualReq).To(Equal(model.GetDataReq{
 				ContentPath: providedContentPath,
 				PkgRef:      dataRef,
-				PullCreds:   pullCreds,
 			}))
 		})
 	})
@@ -70,8 +69,7 @@ var _ = Context("handle", func() {
 
 			Expect(actualCtx).To(Equal(providedCtx))
 			Expect(actualReq).To(Equal(model.ListDescendantsReq{
-				PkgRef:    dataRef,
-				PullCreds: pullCreds,
+				PkgRef: dataRef,
 			}))
 		})
 	})

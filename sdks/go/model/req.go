@@ -10,14 +10,12 @@ type AddAuthReq struct {
 // GetDataReq deprecated
 type GetDataReq struct {
 	ContentPath string
-	PullCreds   *Creds `json:"pullCreds,omitempty"`
 	PkgRef      string
 }
 
 // ListDescendantsReq deprecated
 type ListDescendantsReq struct {
-	PullCreds *Creds `json:"pullCreds,omitempty"`
-	PkgRef    string `json:"pkgRef"`
+	PkgRef string `json:"pkgRef"`
 }
 
 type StartOpReq struct {
@@ -28,6 +26,5 @@ type StartOpReq struct {
 }
 
 type StartOpReqOp struct {
-	Ref       string
-	PullCreds *Creds `json:"pullCreds,omitempty"`
+	Ref string
 }

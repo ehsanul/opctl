@@ -53,7 +53,6 @@ func run(
 	opHandle, err := dataResolver.Resolve(
 		ctx,
 		opRef,
-		nil,
 	)
 	if err != nil {
 		return nil, err

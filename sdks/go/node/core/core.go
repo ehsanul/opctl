@@ -80,7 +80,6 @@ type Core interface {
 	ResolveData(
 		ctx context.Context,
 		dataRef string,
-		pullCreds *model.Creds,
 	) (
 		model.DataHandle,
 		error,

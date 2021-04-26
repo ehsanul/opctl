@@ -13,14 +13,10 @@ import (
 )
 
 // New returns a data provider which sources pkgs from git repos
-func New(
-	basePath string,
-	pullCreds *model.Creds,
-) model.DataProvider {
+func New(basePath string) model.DataProvider {
 	return &_git{
 		localFSProvider: fs.New(basePath),
 		basePath:        basePath,
-		pullCreds:       pullCreds,
 	}
 }
 
@@ -28,7 +24,6 @@ type _git struct {
 	// composed of fsProvider
 	localFSProvider model.DataProvider
 	basePath        string
-	pullCreds       *model.Creds
 
 	// resolveSingleFlightGroup is used to ensure resolves don't race across provider instances
 	resolveSingleFlightGroup singleflight.Group

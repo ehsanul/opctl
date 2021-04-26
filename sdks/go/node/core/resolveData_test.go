@@ -30,7 +30,6 @@ var _ = Context("core", func() {
 			actualOp, actualErr := objectUnderTest.ResolveData(
 				providedCtx,
 				providedOpRef,
-				nil,
 			)
 
 			/* assert */

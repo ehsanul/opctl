@@ -17,7 +17,7 @@ func (c core) ListDescendants(
 		return []*model.DirEntry{}, nil
 	}
 
-	dataHandle, err := c.ResolveData(ctx, req.PkgRef, req.PullCreds)
+	dataHandle, err := c.ResolveData(ctx, req.PkgRef)
 	if err != nil {
 		return nil, err
 	}

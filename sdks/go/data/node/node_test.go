@@ -41,8 +41,7 @@ var _ = Context("_node", func() {
 
 			Expect(actualContext).To(Equal(context.TODO()))
 			Expect(actualReq).To(Equal(model.ListDescendantsReq{
-				PkgRef:    providedDataRef,
-				PullCreds: providedPullCreds,
+				PkgRef: providedDataRef,
 			}))
 		})
 		Context("core.ListDescendants errs", func() {

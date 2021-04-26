@@ -18,7 +18,7 @@ func (c core) GetData(
 		return nil, fmt.Errorf("invalid ref: %s%s", req.PkgRef, req.ContentPath)
 	}
 
-	dataHandle, err := c.ResolveData(ctx, req.PkgRef, req.PullCreds)
+	dataHandle, err := c.ResolveData(ctx, req.PkgRef)
 	if err != nil {
 		return nil, err
 	}

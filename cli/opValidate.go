@@ -15,7 +15,6 @@ func opValidate(
 	opDirHandle, err := dataResolver.Resolve(
 		ctx,
 		opRef,
-		nil,
 	)
 	if err != nil {
 		return err

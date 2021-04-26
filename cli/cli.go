@@ -181,8 +181,6 @@ func newCli(
 		opCmd.Command("install", "Install an op", func(installCmd *mow.Cmd) {
 			path := installCmd.StringOpt("path", opspec.DotOpspecDirName, "Path the op will be installed at")
 			opRef := installCmd.StringArg("OP_REF", "", "Op reference (either `relative/path`, `/absolute/path`, `host/path/repo#tag`, or `host/path/repo#tag/path`)")
-			username := installCmd.StringOpt("u username", "", "Username used to auth w/ the pkg source")
-			password := installCmd.StringOpt("p password", "", "Password used to auth w/ the pkg source")
 
 			installCmd.Action = func() {
 				exitWith(
@@ -192,10 +190,6 @@ func newCli(
 						dataResolver,
 						*opRef,
 						*path,
-						&model.Creds{
-							Username: *username,
-							Password: *password,
-						},
 					),
 				)
 			}

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/opctl/opctl/cli/internal/dataresolver"
-	"github.com/opctl/opctl/sdks/go/model"
 	"github.com/opctl/opctl/sdks/go/opspec"
 )
 
@@ -17,7 +16,6 @@ func opInstall(
 	dataResolver dataresolver.DataResolver,
 	opRef string,
 	path string,
-	creds *model.Creds,
 ) error {
 	// install the whole pkg in case relative (intra pkg) refs exist
 	opRefParts := strings.SplitN(opRef, "#", 2)
@@ -33,7 +31,6 @@ func opInstall(
 	opDirHandle, err := dataResolver.Resolve(
 		ctx,
 		pkgRef,
-		creds,
 	)
 	if err != nil {
 		return err

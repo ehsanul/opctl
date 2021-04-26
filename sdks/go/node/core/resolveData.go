@@ -18,7 +18,6 @@ import (
 func (cr core) ResolveData(
 	ctx context.Context,
 	dataRef string,
-	pullCreds *model.Creds,
 ) (
 	model.DataHandle,
 	error,
@@ -27,6 +26,6 @@ func (cr core) ResolveData(
 		ctx,
 		dataRef,
 		fs.New(),
-		git.New(cr.dataCachePath, pullCreds),
+		git.New(cr.dataCachePath),
 	)
 }
