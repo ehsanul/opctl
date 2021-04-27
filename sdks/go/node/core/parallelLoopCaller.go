@@ -16,7 +16,8 @@ import (
 type parallelLoopCaller interface {
 	// Executes a parallel loop call
 	Call(
-		parentCtx context.Context,
+		ctx context.Context,
+		eventChannel chan model.Event,
 		id string,
 		inboundScope map[string]*model.Value,
 		callSpecParallelLoop model.ParallelLoopCallSpec,
@@ -41,6 +42,7 @@ type _parallelLoopCaller struct {
 
 func (plpr _parallelLoopCaller) Call(
 	parentCtx context.Context,
+	eventChannel chan model.Event,
 	id string,
 	inboundScope map[string]*model.Value,
 	callSpecParallelLoop model.ParallelLoopCallSpec,
@@ -106,6 +108,7 @@ func (plpr _parallelLoopCaller) Call(
 			defer wg.Done()
 			outputs, err := plpr.caller.Call(
 				parallelLoopCtx,
+				eventChannel,
 				childCallID,
 				childCallScope,
 				&callSpecParallelLoop.Run,

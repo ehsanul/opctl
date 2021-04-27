@@ -35,6 +35,8 @@ func (gp *_git) Label() string {
 
 func (gp *_git) TryResolve(
 	ctx context.Context,
+	eventChannel chan model.Event,
+	callID string,
 	dataRef string,
 ) (model.DataHandle, error) {
 	// attempt to resolve within singleFlight.Group to ensure concurrent resolves don't race
@@ -47,14 +49,14 @@ func (gp *_git) TryResolve(
 			}
 
 			// attempt to resolve from cache
-			handle, _ := gp.localFSProvider.TryResolve(ctx, dataRef)
+			handle, _ := gp.localFSProvider.TryResolve(ctx, eventChannel, callID, dataRef)
 			// ignore errors from local resolution, since we'll try to pull from a remote
 			if handle != nil {
 				return handle, nil
 			}
 
 			// attempt pull if cache miss
-			if err := gp.pull(ctx, parsedPkgRef); err != nil {
+			if err := gp.pull(ctx, eventChannel, callID, parsedPkgRef); err != nil {
 				return nil, err
 			}
 			return newHandle(filepath.Join(gp.basePath, dataRef), dataRef), nil

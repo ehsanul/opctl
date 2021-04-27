@@ -17,6 +17,8 @@ import (
 type DataResolver interface {
 	Resolve(
 		ctx context.Context,
+		eventChannel chan model.Event,
+		callID string,
 		dataRef string,
 	) (model.DataHandle, error)
 }
@@ -38,6 +40,8 @@ type _dataResolver struct {
 
 func (dtr _dataResolver) Resolve(
 	ctx context.Context,
+	eventChannel chan model.Event,
+	callID string,
 	dataRef string,
 ) (model.DataHandle, error) {
 	cwd, err := os.Getwd()
@@ -52,6 +56,8 @@ func (dtr _dataResolver) Resolve(
 
 	opDirHandle, err := data.Resolve(
 		ctx,
+		eventChannel,
+		callID,
 		dataRef,
 		fsProvider,
 		dataNode.New(

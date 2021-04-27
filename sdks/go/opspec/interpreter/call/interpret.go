@@ -15,6 +15,7 @@ import (
 //Interpret a spec into a call
 func Interpret(
 	ctx context.Context,
+	eventChannel chan model.Event,
 	scope map[string]*model.Value,
 	callSpec *model.CallSpec,
 	id string,
@@ -62,6 +63,7 @@ func Interpret(
 	case callSpec.Op != nil:
 		call.Op, err = op.Interpret(
 			ctx,
+			eventChannel,
 			scope,
 			callSpec.Op,
 			id,

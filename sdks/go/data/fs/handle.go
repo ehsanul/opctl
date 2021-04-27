@@ -24,6 +24,8 @@ type handle struct {
 
 func (lh handle) GetContent(
 	ctx context.Context,
+	eventChannel chan model.Event,
+	callID string,
 	contentPath string,
 ) (
 	model.ReadSeekCloser,
@@ -34,6 +36,8 @@ func (lh handle) GetContent(
 
 func (lh handle) ListDescendants(
 	ctx context.Context,
+	eventChannel chan model.Event,
+	callID string,
 ) (
 	[]*model.DirEntry,
 	error,

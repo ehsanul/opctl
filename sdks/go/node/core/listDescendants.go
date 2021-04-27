@@ -8,6 +8,8 @@ import (
 
 func (c core) ListDescendants(
 	ctx context.Context,
+	eventChannel chan model.Event,
+	callID string,
 	req model.ListDescendantsReq,
 ) (
 	[]*model.DirEntry,
@@ -17,10 +19,10 @@ func (c core) ListDescendants(
 		return []*model.DirEntry{}, nil
 	}
 
-	dataHandle, err := c.ResolveData(ctx, req.PkgRef)
+	dataHandle, err := c.ResolveData(ctx, eventChannel, callID, req.PkgRef)
 	if err != nil {
 		return nil, err
 	}
 
-	return dataHandle.ListDescendants(ctx)
+	return dataHandle.ListDescendants(ctx, eventChannel, callID)
 }

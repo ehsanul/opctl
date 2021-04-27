@@ -93,19 +93,21 @@ func (this _cliOutput) Event(event *model.Event) {
 		event.CallStarted.Call.Container != nil:
 		this.containerStarted(event)
 
-	case nil != event.ContainerStdErrWrittenTo:
+	case event.ContainerStdErrWrittenTo != nil:
 		this.containerStdErrWrittenTo(event.ContainerStdErrWrittenTo)
 
-	case nil != event.ContainerStdOutWrittenTo:
+	case event.ContainerStdOutWrittenTo != nil:
 		this.containerStdOutWrittenTo(event.ContainerStdOutWrittenTo)
 
 	case event.CallEnded != nil &&
 		event.CallEnded.Call.Op != nil:
 		this.opEnded(event)
 
-	case nil != event.CallStarted &&
-		nil != event.CallStarted.Call.Op:
+	case event.CallStarted != nil && event.CallStarted.Call.Op != nil:
 		this.opStarted(event.CallStarted)
+
+	case event.OpPullProgress != nil:
+		this.opPullProgress(event.OpPullProgress)
 	}
 }
 
@@ -164,7 +166,9 @@ func (this _cliOutput) containerStarted(event *model.Event) {
 }
 
 func (this _cliOutput) outputPrefix(id, opRef string) string {
-	parts := []string{id[:8]}
+	parts := []string{
+		fmt.Sprintf("%.8s", fmt.Sprintf("%-8s", id)),
+	}
 	opRef = this.opFormatter.FormatOpRef(opRef)
 	if opRef != "" {
 		parts = append(parts, opRef)
@@ -235,6 +239,17 @@ func (this _cliOutput) opStarted(event *model.CallStarted) {
 			"%s%s\n",
 			this.outputPrefix(event.Call.ID, event.Call.Op.OpPath),
 			this.cliColorer.Info("started op"),
+		),
+	)
+}
+
+func (this _cliOutput) opPullProgress(event *model.OpPullProgress) {
+	io.WriteString(
+		this.stdWriter,
+		fmt.Sprintf(
+			"%s%s",
+			this.outputPrefix(event.ContainerID, event.OpRef),
+			event.Data,
 		),
 	)
 }

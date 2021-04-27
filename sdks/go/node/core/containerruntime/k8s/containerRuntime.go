@@ -55,9 +55,9 @@ func (cr _containerRuntime) DeleteContainerIfExists(
 
 func (cr _containerRuntime) RunContainer(
 	ctx context.Context,
+	eventChannel chan model.Event,
 	req *model.ContainerCall,
 	rootCallID string,
-	eventChannel chan model.Event,
 	stdout io.WriteCloser,
 	stderr io.WriteCloser,
 ) (*int64, error) {

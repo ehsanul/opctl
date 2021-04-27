@@ -14,6 +14,7 @@ type caller interface {
 	// Call executes a call
 	Call(
 		ctx context.Context,
+		eventChannel chan model.Event,
 		id string,
 		scope map[string]*model.Value,
 		callSpec *model.CallSpec,
@@ -29,12 +30,10 @@ type caller interface {
 func newCaller(
 	containerCaller containerCaller,
 	dataDirPath string,
-	eventChannel chan model.Event,
 ) caller {
 	instance := &_caller{
 		containerCaller: containerCaller,
 		dataDirPath:     dataDirPath,
-		eventChannel:    eventChannel,
 	}
 	instance.opCaller = newOpCaller(instance, dataDirPath)
 	instance.parallelCaller = newParallelCaller(instance)
@@ -48,7 +47,6 @@ func newCaller(
 type _caller struct {
 	containerCaller    containerCaller
 	dataDirPath        string
-	eventChannel       chan model.Event
 	opCaller           opCaller
 	parallelCaller     parallelCaller
 	parallelLoopCaller parallelLoopCaller
@@ -58,6 +56,7 @@ type _caller struct {
 
 func (clr _caller) Call(
 	ctx context.Context,
+	eventChannel chan model.Event,
 	id string,
 	scope map[string]*model.Value,
 	callSpec *model.CallSpec,
@@ -116,7 +115,7 @@ func (clr _caller) Call(
 			event.CallEnded.Outcome = model.OpOutcomeSucceeded
 		}
 
-		clr.eventChannel <- event
+		eventChannel <- event
 	}()
 
 	if callSpec == nil {
@@ -126,6 +125,7 @@ func (clr _caller) Call(
 
 	call, err = callpkg.Interpret(
 		ctx,
+		eventChannel,
 		scope,
 		callSpec,
 		id,
@@ -144,7 +144,7 @@ func (clr _caller) Call(
 
 	// Ensure this is emitted just after the deferred operation to emit the end
 	// event is set up, so we always have a matching start and end event
-	clr.eventChannel <- model.Event{
+	eventChannel <- model.Event{
 		Timestamp: callStartTime,
 		CallStarted: &model.CallStarted{
 			Call: *call,
@@ -156,6 +156,7 @@ func (clr _caller) Call(
 	case callSpec.Container != nil:
 		outputs, err = clr.containerCaller.Call(
 			callCtx,
+			eventChannel,
 			call.Container,
 			scope,
 			callSpec.Container,
@@ -164,6 +165,7 @@ func (clr _caller) Call(
 	case callSpec.Op != nil:
 		outputs, err = clr.opCaller.Call(
 			callCtx,
+			eventChannel,
 			call.Op,
 			scope,
 			parentCallID,
@@ -173,6 +175,7 @@ func (clr _caller) Call(
 	case callSpec.Parallel != nil:
 		outputs, err = clr.parallelCaller.Call(
 			callCtx,
+			eventChannel,
 			id,
 			scope,
 			rootCallID,
@@ -182,6 +185,7 @@ func (clr _caller) Call(
 	case callSpec.ParallelLoop != nil:
 		outputs, err = clr.parallelLoopCaller.Call(
 			callCtx,
+			eventChannel,
 			id,
 			scope,
 			*callSpec.ParallelLoop,
@@ -192,6 +196,7 @@ func (clr _caller) Call(
 	case callSpec.Serial != nil:
 		outputs, err = clr.serialCaller.Call(
 			callCtx,
+			eventChannel,
 			id,
 			scope,
 			rootCallID,
@@ -201,6 +206,7 @@ func (clr _caller) Call(
 	case callSpec.SerialLoop != nil:
 		outputs, err = clr.serialLoopCaller.Call(
 			callCtx,
+			eventChannel,
 			id,
 			scope,
 			*callSpec.SerialLoop,

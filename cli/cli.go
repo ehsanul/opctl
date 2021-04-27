@@ -113,7 +113,7 @@ func newCli(
 
 	eventChannel := make(chan model.Event)
 
-	opNode, err := core.New(ctx, cr, *datadirPath, eventChannel)
+	opNode, err := core.New(ctx, cr, *datadirPath)
 	if err != nil {
 		return nil, err
 	}

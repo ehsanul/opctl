@@ -17,7 +17,6 @@ func New(
 	ctx context.Context,
 	containerRuntime containerruntime.ContainerRuntime,
 	dataDirPath string,
-	eventChannel chan model.Event,
 ) (Core, error) {
 	stateStore, err := newStateStore(
 		ctx,
@@ -30,11 +29,9 @@ func New(
 	caller := newCaller(
 		newContainerCaller(
 			containerRuntime,
-			eventChannel,
 			stateStore,
 		),
 		dataDirPath,
-		eventChannel,
 	)
 
 	return core{
@@ -79,6 +76,8 @@ type Core interface {
 	//  - ErrDataRefResolution on resolution failure
 	ResolveData(
 		ctx context.Context,
+		eventChannel chan model.Event,
+		callID string,
 		dataRef string,
 	) (
 		model.DataHandle,

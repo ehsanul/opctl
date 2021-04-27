@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/opctl/opctl/sdks/go/internal/readchunks"
 	"github.com/opctl/opctl/sdks/go/model"
 	"github.com/opctl/opctl/sdks/go/node/core/containerruntime"
 	"github.com/opctl/opctl/sdks/go/opspec"
@@ -16,6 +17,7 @@ type containerCaller interface {
 	// Executes a container call
 	Call(
 		ctx context.Context,
+		eventChannel chan model.Event,
 		containerCall *model.ContainerCall,
 		inboundScope map[string]*model.Value,
 		containerCallSpec *model.ContainerCallSpec,
@@ -28,26 +30,22 @@ type containerCaller interface {
 
 func newContainerCaller(
 	containerRuntime containerruntime.ContainerRuntime,
-	eventChannel chan model.Event,
 	stateStore stateStore,
 ) containerCaller {
-
 	return _containerCaller{
 		containerRuntime: containerRuntime,
-		eventChannel:     eventChannel,
 		stateStore:       stateStore,
 	}
-
 }
 
 type _containerCaller struct {
 	containerRuntime containerruntime.ContainerRuntime
-	eventChannel     chan model.Event
 	stateStore       stateStore
 }
 
 func (cc _containerCaller) Call(
 	ctx context.Context,
+	eventChannel chan model.Event,
 	containerCall *model.ContainerCall,
 	inboundScope map[string]*model.Value,
 	containerCallSpec *model.ContainerCallSpec,
@@ -72,6 +70,7 @@ func (cc _containerCaller) Call(
 	logChan := make(chan error, 1)
 	go func() {
 		logChan <- cc.interpretLogs(
+			eventChannel,
 			logStdOutPR,
 			logStdErrPR,
 			containerCall,
@@ -86,9 +85,9 @@ func (cc _containerCaller) Call(
 
 	rawExitCode, err := cc.containerRuntime.RunContainer(
 		ctx,
+		eventChannel,
 		containerCall,
 		rootCallID,
-		cc.eventChannel,
 		logStdOutPW,
 		logStdErrPW,
 	)
@@ -112,6 +111,7 @@ func (cc _containerCaller) Call(
 }
 
 func (this _containerCaller) interpretLogs(
+	eventChannel chan model.Event,
 	stdOutReader io.Reader,
 	stdErrReader io.Reader,
 	containerCall *model.ContainerCall,
@@ -120,10 +120,10 @@ func (this _containerCaller) interpretLogs(
 	stdOutLogChan := make(chan error, 1)
 	go func() {
 		// interpret stdOut
-		stdOutLogChan <- readChunks(
+		stdOutLogChan <- readchunks.ReadChunks(
 			stdOutReader,
 			func(chunk []byte) {
-				this.eventChannel <- model.Event{
+				eventChannel <- model.Event{
 					Timestamp: time.Now().UTC(),
 					ContainerStdOutWrittenTo: &model.ContainerStdOutWrittenTo{
 						Data:        chunk,
@@ -138,10 +138,10 @@ func (this _containerCaller) interpretLogs(
 	stdErrLogChan := make(chan error, 1)
 	go func() {
 		// interpret stdErr
-		stdErrLogChan <- readChunks(
+		stdErrLogChan <- readchunks.ReadChunks(
 			stdErrReader,
 			func(chunk []byte) {
-				this.eventChannel <- model.Event{
+				eventChannel <- model.Event{
 					Timestamp: time.Now().UTC(),
 					ContainerStdErrWrittenTo: &model.ContainerStdErrWrittenTo{
 						Data:        chunk,

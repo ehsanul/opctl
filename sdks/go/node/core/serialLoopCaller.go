@@ -16,6 +16,7 @@ type serialLoopCaller interface {
 	// Executes a serial loop call
 	Call(
 		ctx context.Context,
+		eventChannel chan model.Event,
 		id string,
 		inboundScope map[string]*model.Value,
 		callSpecSerialLoop model.SerialLoopCallSpec,
@@ -42,6 +43,7 @@ type _serialLoopCaller struct {
 
 func (lpr _serialLoopCaller) Call(
 	ctx context.Context,
+	eventChannel chan model.Event,
 	id string,
 	inboundScope map[string]*model.Value,
 	callSpecSerialLoop model.SerialLoopCallSpec,
@@ -81,6 +83,7 @@ func (lpr _serialLoopCaller) Call(
 
 		outputs, err := lpr.caller.Call(
 			ctx,
+			eventChannel,
 			callID,
 			scope,
 			&callSpecSerialLoop.Run,

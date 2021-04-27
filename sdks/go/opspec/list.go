@@ -14,10 +14,12 @@ import (
 // List ops recursively within a directory, returning discovered op files by path.
 func List(
 	ctx context.Context,
+	eventChannel chan model.Event,
+	callID string,
 	dirHandle model.DataHandle,
 ) (map[string]*model.OpSpec, error) {
 
-	contents, err := dirHandle.ListDescendants(ctx)
+	contents, err := dirHandle.ListDescendants(ctx, eventChannel, callID)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +28,7 @@ func List(
 	for _, content := range contents {
 		if filepath.Base(content.Path) == opfile.FileName {
 
-			opFileReader, err := dirHandle.GetContent(ctx, content.Path)
+			opFileReader, err := dirHandle.GetContent(ctx, eventChannel, callID, content.Path)
 			if err != nil {
 				return nil, errors.Wrap(err, fmt.Sprintf("error opening %s%s", dirHandle.Ref(), content.Path))
 			}

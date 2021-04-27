@@ -16,3 +16,7 @@ func (pr ref) ToPath(basePath string) string {
 	crossPlatPath := filepath.FromSlash(fmt.Sprintf("%v#%v", pr.Name, pr.Version))
 	return filepath.Join(basePath, crossPlatPath)
 }
+
+func (pr ref) String() string {
+	return pr.ToPath(".")
+}

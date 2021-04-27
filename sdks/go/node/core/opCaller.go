@@ -16,6 +16,7 @@ type opCaller interface {
 	// Executes an op call
 	Call(
 		ctx context.Context,
+		eventChannel chan model.Event,
 		opCall *model.OpCall,
 		inboundScope map[string]*model.Value,
 		parentCallID *string,
@@ -44,6 +45,7 @@ type _opCaller struct {
 
 func (oc _opCaller) Call(
 	ctx context.Context,
+	eventChannel chan model.Event,
 	opCall *model.OpCall,
 	inboundScope map[string]*model.Value,
 	parentCallID *string,
@@ -75,6 +77,7 @@ func (oc _opCaller) Call(
 
 	opOutputs, err := oc.caller.Call(
 		ctx,
+		eventChannel,
 		opCall.ChildCallID,
 		opCallScope,
 		opCall.ChildCallCallSpec,

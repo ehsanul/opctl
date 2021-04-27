@@ -3,13 +3,16 @@ package git
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"github.com/opctl/opctl/sdks/go/internal/readchunks"
 	"github.com/opctl/opctl/sdks/go/model"
 	"github.com/pkg/errors"
 )
@@ -21,6 +24,8 @@ import (
 //  - ErrDataProviderAuthorization on authorization failure
 func (gp *_git) pull(
 	ctx context.Context,
+	eventChannel chan model.Event,
+	callID string,
 	dataRef *ref,
 ) error {
 	opPath := dataRef.ToPath(gp.basePath)
@@ -30,13 +35,31 @@ func (gp *_git) pull(
 		return errors.Wrap(err, "failed to connect to ssh agent")
 	}
 
+	reader, writer := io.Pipe()
 	cloneOptions := &git.CloneOptions{
 		URL:           fmt.Sprintf("ssh://git@%s", dataRef.Name),
 		ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/tags/%s", dataRef.Version)),
 		Depth:         1,
-		Progress:      os.Stdout,
+		Progress:      writer,
 		Auth:          auth,
 	}
+
+	// outputErr := make(chan error, 1)
+	go func() {
+		_ = readchunks.ReadChunks(
+			reader,
+			func(chunk []byte) {
+				eventChannel <- model.Event{
+					Timestamp: time.Now().UTC(),
+					OpPullProgress: &model.OpPullProgress{
+						ContainerID: callID,
+						OpRef:       dataRef.String(),
+						Data:        chunk,
+					},
+				}
+			},
+		)
+	}()
 
 	if _, err := git.PlainCloneContext(
 		ctx,
@@ -62,6 +85,18 @@ func (gp *_git) pull(
 		}
 		return err
 	}
+	writer.Close()
+
+	// err = <-outputErr
+	// if err != nil {
+	// 	fmt.Println("err", err)
+	// 	fmt.Fprintf(os.Stderr, "cleaning up %v\n", dataRef)
+	// 	err := os.RemoveAll(opPath)
+	// 	if err != nil {
+	// 		fmt.Fprintf(os.Stderr, "failed to cleanup partially downloaded op: %v\n", err)
+	// 	}
+	// 	return err
+	// }
 
 	return os.RemoveAll(filepath.Join(opPath, ".git"))
 }

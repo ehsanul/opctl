@@ -45,63 +45,6 @@ func run(
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	dataResolver := dataresolver.New(
-		cliParamSatisfier,
-		node,
-	)
-
-	opHandle, err := dataResolver.Resolve(
-		ctx,
-		opRef,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	opFileReader, err := opHandle.GetContent(
-		ctx,
-		opfile.FileName,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	opFileBytes, err := ioutil.ReadAll(opFileReader)
-	if nil != err {
-		return nil, err
-	}
-
-	opFile, err := opfile.Unmarshal(
-		filepath.Join(opHandle.Ref(), opfile.FileName),
-		opFileBytes,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	ymlFileInputSrc, err := cliParamSatisfier.NewYMLFileInputSrc(opts.ArgFile)
-	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("unable to load arg file at '%v'", opts.ArgFile))
-	}
-
-	cliPromptInputSrc := cliParamSatisfier.NewCliPromptInputSrc(opFile.Inputs)
-	if err != nil {
-		return nil, err
-	}
-	argsMap, err := cliParamSatisfier.Satisfy(
-		cliparamsatisfier.NewInputSourcer(
-			cliParamSatisfier.NewSliceInputSrc(opts.Args, "="),
-			ymlFileInputSrc,
-			cliParamSatisfier.NewEnvVarInputSrc(),
-			cliParamSatisfier.NewParamDefaultInputSrc(opFile.Inputs),
-			cliPromptInputSrc,
-		),
-		opFile.Inputs,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	aSigIntWasReceivedAlready := false
 	sigIntChannel := make(chan os.Signal, 1)
 	defer close(sigIntChannel)
@@ -123,24 +66,6 @@ func run(
 		sigInfoChannel,
 		syscall.Signal(0x1d), // portable version of syscall.SIGINFO
 	)
-
-	// listen for op end on a channel
-	done := make(chan runResults, 1)
-	go func() {
-		outputs, err := node.StartOp(
-			ctx,
-			model.StartOpReq{
-				Args: argsMap,
-				Op: model.StartOpReqOp{
-					Ref: opHandle.Ref(),
-				},
-			},
-		)
-		done <- runResults{
-			outputs: outputs,
-			err:     err,
-		}
-	}()
 
 	// "request animation frame" like loop to force refresh of display loading spinners
 	animationFrame := make(chan bool)
@@ -173,6 +98,109 @@ func run(
 			output.Print(state.String(opFormatter, loadingSpinner, time.Now(), true))
 		}
 	}
+
+	// listen for op end on a channel
+	done := make(chan runResults, 1)
+	go func() {
+		dataResolver := dataresolver.New(
+			cliParamSatisfier,
+			node,
+		)
+
+		callID := "root"
+
+		opHandle, err := dataResolver.Resolve(
+			ctx,
+			eventChannel,
+			callID,
+			opRef,
+		)
+		if err != nil {
+			done <- runResults{
+				err: err,
+			}
+			return
+		}
+
+		opFileReader, err := opHandle.GetContent(
+			ctx,
+			eventChannel,
+			callID,
+			opfile.FileName,
+		)
+		if err != nil {
+			done <- runResults{
+				err: err,
+			}
+			return
+		}
+
+		opFileBytes, err := ioutil.ReadAll(opFileReader)
+		if nil != err {
+			done <- runResults{
+				err: err,
+			}
+			return
+		}
+
+		opFile, err := opfile.Unmarshal(
+			filepath.Join(opHandle.Ref(), opfile.FileName),
+			opFileBytes,
+		)
+		if err != nil {
+			done <- runResults{
+				err: err,
+			}
+			return
+		}
+
+		ymlFileInputSrc, err := cliParamSatisfier.NewYMLFileInputSrc(opts.ArgFile)
+		if err != nil {
+			done <- runResults{
+				err: errors.Wrap(err, fmt.Sprintf("unable to load arg file at '%v'", opts.ArgFile)),
+			}
+			return
+		}
+
+		cliPromptInputSrc := cliParamSatisfier.NewCliPromptInputSrc(opFile.Inputs)
+		if err != nil {
+			done <- runResults{
+				err: err,
+			}
+			return
+		}
+		argsMap, err := cliParamSatisfier.Satisfy(
+			cliparamsatisfier.NewInputSourcer(
+				cliParamSatisfier.NewSliceInputSrc(opts.Args, "="),
+				ymlFileInputSrc,
+				cliParamSatisfier.NewEnvVarInputSrc(),
+				cliParamSatisfier.NewParamDefaultInputSrc(opFile.Inputs),
+				cliPromptInputSrc,
+			),
+			opFile.Inputs,
+		)
+		if err != nil {
+			done <- runResults{
+				err: err,
+			}
+			return
+		}
+
+		outputs, err := node.StartOp(
+			ctx,
+			eventChannel,
+			model.StartOpReq{
+				Args: argsMap,
+				Op: model.StartOpReqOp{
+					Ref: opHandle.Ref(),
+				},
+			},
+		)
+		done <- runResults{
+			outputs: outputs,
+			err:     err,
+		}
+	}()
 
 	for {
 		select {

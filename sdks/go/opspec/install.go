@@ -12,10 +12,12 @@ import (
 // Install an op at path
 func Install(
 	ctx context.Context,
+	eventChannel chan model.Event,
+	callID string,
 	path string,
 	handle model.DataHandle,
 ) error {
-	contentsList, err := handle.ListDescendants(ctx)
+	contentsList, err := handle.ListDescendants(ctx, eventChannel, callID)
 	if err != nil {
 		return err
 	}
@@ -51,7 +53,7 @@ func Install(
 				return err
 			}
 
-			src, err := handle.GetContent(ctx, content.Path)
+			src, err := handle.GetContent(ctx, eventChannel, callID, content.Path)
 			if err != nil {
 				return err
 			}

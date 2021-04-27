@@ -55,6 +55,7 @@ func main() {
 	// start op
 	rootID, err := apiClient.StartOp(
 		ctx,
+    eventChannel,
 		model.StartOpReq{
 			Args: map[string]*model.Value{},
 			Op: model.StartOpReqOp{

@@ -20,6 +20,7 @@ import (
 // Interpret interprets an OpCallSpec into a OpCall
 func Interpret(
 	ctx context.Context,
+	eventChannel chan model.Event,
 	scope map[string]*model.Value,
 	opCallSpec *model.OpCallSpec,
 	opID string,
@@ -44,6 +45,8 @@ func Interpret(
 	} else {
 		opHandle, err := data.Resolve(
 			ctx,
+			eventChannel,
+			opID,
 			opCallSpec.Ref,
 			fs.New(parentOpPath, filepath.Dir(parentOpPath)),
 			git.New(filepath.Join(dataDirPath, "ops")),

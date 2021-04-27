@@ -13,21 +13,24 @@ import (
 
 func (this core) StartOp(
 	ctx context.Context,
+	eventChannel chan model.Event,
 	req model.StartOpReq,
 ) (map[string]*model.Value, error) {
+	callID, err := uniquestring.Construct()
+	if err != nil {
+		// end run immediately on any error
+		return nil, err
+	}
+
 	opHandle, err := data.Resolve(
 		ctx,
+		eventChannel,
+		callID,
 		req.Op.Ref,
 		fs.New(),
 		git.New(this.dataCachePath),
 	)
 	if err != nil {
-		return nil, err
-	}
-
-	callID, err := uniquestring.Construct()
-	if err != nil {
-		// end run immediately on any error
 		return nil, err
 	}
 
@@ -57,6 +60,7 @@ func (this core) StartOp(
 
 	return this.caller.Call(
 		ctx,
+		eventChannel,
 		callID,
 		req.Args,
 		&model.CallSpec{

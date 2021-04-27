@@ -18,9 +18,9 @@ import (
 type runContainer interface {
 	RunContainer(
 		ctx context.Context,
+		eventChannel chan model.Event,
 		req *model.ContainerCall,
 		rootCallID string,
-		eventChannel chan model.Event,
 		stdout io.WriteCloser,
 		stderr io.WriteCloser,
 	) (*int64, error)
@@ -59,9 +59,9 @@ type _runContainer struct {
 
 func (cr _runContainer) RunContainer(
 	ctx context.Context,
+	eventChannel chan model.Event,
 	req *model.ContainerCall,
 	rootCallID string,
-	eventChannel chan model.Event,
 	stdout io.WriteCloser,
 	stderr io.WriteCloser,
 ) (*int64, error) {

@@ -12,6 +12,7 @@ type serialCaller interface {
 	// Executes a serial call
 	Call(
 		ctx context.Context,
+		eventChannel chan model.Event,
 		callID string,
 		inboundScope map[string]*model.Value,
 		rootCallID string,
@@ -35,6 +36,7 @@ type _serialCaller struct {
 
 func (sc _serialCaller) Call(
 	ctx context.Context,
+	eventChannel chan model.Event,
 	callID string,
 	inboundScope map[string]*model.Value,
 	rootCallID string,
@@ -56,6 +58,7 @@ func (sc _serialCaller) Call(
 
 		outputs, err := sc.caller.Call(
 			ctx,
+			eventChannel,
 			childCallID,
 			scope,
 			callSpecCall,

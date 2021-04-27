@@ -15,6 +15,8 @@ type DataProvider interface {
 	//  - ErrDataProviderAuthorization on authorization failure
 	TryResolve(
 		ctx context.Context,
+		eventChannel chan Event,
+		callID string,
 		dataRef string,
 	) (DataHandle, error)
 }

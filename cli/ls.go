@@ -11,6 +11,7 @@ import (
 
 	"github.com/opctl/opctl/cli/internal/cliparamsatisfier"
 	"github.com/opctl/opctl/cli/internal/dataresolver"
+	"github.com/opctl/opctl/sdks/go/model"
 	"github.com/opctl/opctl/sdks/go/node/core"
 	"github.com/opctl/opctl/sdks/go/opspec"
 )
@@ -33,8 +34,13 @@ func ls(
 
 	fmt.Fprintln(_tabWriter, "REF\tDESCRIPTION")
 
+	eventChannel := make(chan model.Event)
+	callID := ""
+
 	dirHandle, err := dataResolver.Resolve(
 		ctx,
+		eventChannel,
+		callID,
 		dirRef,
 	)
 	if err != nil {
@@ -43,6 +49,8 @@ func ls(
 
 	opsByPath, err := opspec.List(
 		ctx,
+		eventChannel,
+		callID,
 		dirHandle,
 	)
 	if err != nil {

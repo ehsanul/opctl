@@ -1,12 +1,12 @@
-package core
+package readchunks
 
 import (
 	"bufio"
 	"io"
 )
 
-// readChunks reads from an io.Reader in chunks
-func readChunks(
+// ReadChunks reads from an io.Reader in chunks
+func ReadChunks(
 	stream io.Reader,
 	onChunk func(line []byte),
 ) error {

@@ -14,6 +14,7 @@ type parallelCaller interface {
 	// Executes a parallel call
 	Call(
 		parentCtx context.Context,
+		eventChannel chan model.Event,
 		callID string,
 		inboundScope map[string]*model.Value,
 		rootCallID string,
@@ -37,6 +38,7 @@ type _parallelCaller struct {
 
 func (pc _parallelCaller) Call(
 	parentCtx context.Context,
+	eventChannel chan model.Event,
 	callID string,
 	inboundScope map[string]*model.Value,
 	rootCallID string,
@@ -97,6 +99,7 @@ func (pc _parallelCaller) Call(
 			defer wg.Done()
 			outputs, err := pc.caller.Call(
 				childCtx,
+				eventChannel,
 				childCallID,
 				inboundScope,
 				childCall,

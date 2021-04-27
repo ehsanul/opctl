@@ -22,10 +22,10 @@ type ContainerRuntime interface {
 	// RunContainer creates, starts, and waits on a container. ExitCode &/Or an error will be returned
 	RunContainer(
 		ctx context.Context,
+		eventChannel chan model.Event,
 		req *model.ContainerCall,
 		// @TODO: get rid of in combination with eventPublisher
 		rootCallID string,
-		eventChannel chan model.Event,
 		stdout io.WriteCloser,
 		stderr io.WriteCloser,
 	) (*int64, error)
