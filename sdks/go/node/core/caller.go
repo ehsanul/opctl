@@ -123,6 +123,11 @@ func (clr _caller) Call(
 		return outputs, err
 	}
 
+	// scratchDirPath := filepath.Join(clr.dataDirPath, "dcg", id)
+	// defer func() {
+	// 	os.RemoveAll(scratchDirPath)
+	// }()
+
 	call, err = callpkg.Interpret(
 		ctx,
 		eventChannel,

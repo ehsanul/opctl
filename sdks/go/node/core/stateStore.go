@@ -30,7 +30,7 @@ func newStateStore(
 	ctx context.Context,
 	dataDirPath string,
 ) (stateStore, error) {
-	dbPath := path.Join(dataDirPath, "dcg", "events")
+	dbPath := path.Join(dataDirPath, "db")
 	if err := os.MkdirAll(dbPath, 0700); nil != err {
 		return nil, err
 	}

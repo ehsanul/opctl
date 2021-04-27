@@ -3,6 +3,7 @@ package clioutput
 import (
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -36,7 +37,7 @@ func (of CliOpFormatter) FormatOpRef(opRef string) string {
 		}
 		dataDirPath := of.datadirPath
 		if strings.HasPrefix(opRef, dataDirPath) {
-			return opRef[len(dataDirPath+string(os.PathListSeparator)+"ops"+string(os.PathListSeparator)):]
+			return opRef[len(filepath.Join(dataDirPath, "ops")+string(os.PathListSeparator)):]
 		}
 		if strings.HasPrefix(opRef, cwd) {
 			return "." + opRef[len(cwd):]

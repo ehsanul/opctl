@@ -37,12 +37,7 @@ func Interpret(
 	}
 
 	// construct dcg container path
-	scratchDirPath := filepath.Join(
-		dataDirPath,
-		"dcg",
-		containerID,
-		"fs",
-	)
+	scratchDirPath := filepath.Join(dataDirPath, "dcg", containerID, "fs")
 	if err := os.MkdirAll(scratchDirPath, 0700); err != nil {
 		return nil, err
 	}
