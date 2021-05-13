@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 
@@ -14,51 +13,35 @@ import (
 )
 
 var _ = Context("Pull", func() {
-	Context("parseRef errs", func() {
-		It("should return error", func() {
-			/* arrange */
-			/* act */
-			actualError := Pull(
-				context.Background(),
-				"dummyPath",
-				"\\///%%&",
-				nil,
-			)
-
-			fmt.Print(actualError.Error())
-
-			/* assert */
-			Expect(actualError).To(MatchError(`invalid git ref: parse "\\///%%&": invalid URL escape "%%&"`))
-		})
-	})
 	Context("parseRef doesn't err", func() {
 		Context("git.PlainClone errors", func() {
 			Context("err.Error() returns git.ErrRepositoryAlreadyExists", func() {
 				It("shouldn't error", func() {
 					/* arrange */
-					providedPath, err := ioutil.TempDir("", "")
-					if err != nil {
-						panic(err)
-					}
-					// some small public repo
-					providedRef := "github.com/opspec-pkgs/_.op.create#3.2.0"
+					objectUnderTest := _git{}
 
 					/* act */
-					firstErr := Pull(
+					firstErr := objectUnderTest.pull(
 						context.Background(),
-						providedPath,
-						providedRef,
 						nil,
+						"callID",
+						&ref{
+							Name:    "github.com/opspec-pkgs/_.op.create",
+							Version: "3.2.0",
+						},
 					)
 					if firstErr != nil {
 						panic(firstErr)
 					}
 
-					actualError := Pull(
+					actualError := objectUnderTest.pull(
 						context.Background(),
-						providedPath,
-						providedRef,
 						nil,
+						"callID",
+						&ref{
+							Name:    "github.com/opspec-pkgs/_.op.create",
+							Version: "3.2.0",
+						},
 					)
 
 					/* assert */
@@ -68,6 +51,7 @@ var _ = Context("Pull", func() {
 			Context("err.Error() returns transport.ErrAuthenticationRequired error", func() {
 				It("should return expected error", func() {
 					/* arrange */
+					objectUnderTest := _git{}
 					testServer := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						w.WriteHeader(http.StatusUnauthorized)
 					}))
@@ -79,21 +63,17 @@ var _ = Context("Pull", func() {
 						http.DefaultTransport.(*http.Transport).TLSClientConfig = nil
 					}()
 
-					providedRef := fmt.Sprintf("%s#version", testServer.URL)
-
-					providedPath, err := ioutil.TempDir("", "")
-					if err != nil {
-						panic(err)
-					}
-
 					expectedError := model.ErrDataProviderAuthentication{}
 
 					/* act */
-					actualError := Pull(
+					actualError := objectUnderTest.pull(
 						context.Background(),
-						providedPath,
-						providedRef,
 						nil,
+						"callID",
+						&ref{
+							Name:    testServer.URL,
+							Version: "version",
+						},
 					)
 
 					/* assert */
@@ -103,6 +83,7 @@ var _ = Context("Pull", func() {
 			Context("err.Error() returns transport.ErrAuthorizationFailed error", func() {
 				It("should return expected error", func() {
 					/* arrange */
+					objectUnderTest := _git{}
 					testServer := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						w.WriteHeader(http.StatusForbidden)
 					}))
@@ -114,23 +95,16 @@ var _ = Context("Pull", func() {
 						http.DefaultTransport.(*http.Transport).TLSClientConfig = nil
 					}()
 
-					providedRef := fmt.Sprintf("%s#version", testServer.URL)
-
-					providedPath, err := ioutil.TempDir("", "")
-					if err != nil {
-						panic(err)
-					}
-
 					expectedError := model.ErrDataProviderAuthorization{}
 
 					/* act */
-					actualError := Pull(
+					actualError := objectUnderTest.pull(
 						context.Background(),
-						providedPath,
-						providedRef,
-						&model.Creds{
-							Username: "joetesterperson",
-							Password: "MWgQpun9TWUx2iFQctyJ",
+						nil,
+						"callId",
+						&ref{
+							Name:    testServer.URL,
+							Version: "version",
 						},
 					)
 
@@ -141,6 +115,7 @@ var _ = Context("Pull", func() {
 			Context("err.Error() returns other error", func() {
 				It("should return error", func() {
 					/* arrange */
+					objectUnderTest := _git{}
 					testServer := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						w.WriteHeader(http.StatusInternalServerError)
 					}))
@@ -152,19 +127,15 @@ var _ = Context("Pull", func() {
 						http.DefaultTransport.(*http.Transport).TLSClientConfig = nil
 					}()
 
-					providedRef := fmt.Sprintf("%s#version", testServer.URL)
-
-					providedPath, err := ioutil.TempDir("", "")
-					if err != nil {
-						panic(err)
-					}
-
 					/* act */
-					actualError := Pull(
+					actualError := objectUnderTest.pull(
 						context.Background(),
-						providedPath,
-						providedRef,
 						nil,
+						"callId",
+						&ref{
+							Name:    testServer.URL,
+							Version: "version",
+						},
 					)
 
 					fmt.Println(actualError.Error())

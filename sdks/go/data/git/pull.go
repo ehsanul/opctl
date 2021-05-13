@@ -11,7 +11,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/opctl/opctl/sdks/go/internal/readchunks"
 	"github.com/opctl/opctl/sdks/go/model"
 	"github.com/pkg/errors"
@@ -30,18 +30,21 @@ func (gp *_git) pull(
 ) error {
 	opPath := dataRef.ToPath(gp.basePath)
 
-	auth, err := ssh.NewSSHAgentAuth("git")
+	url := fmt.Sprintf("https://%s", dataRef.Name)
+	creds, err := getCredentials(ctx, url)
 	if err != nil {
-		return errors.Wrap(err, "failed to connect to ssh agent")
+		return err
 	}
-
 	reader, writer := io.Pipe()
 	cloneOptions := &git.CloneOptions{
-		URL:           fmt.Sprintf("ssh://git@%s", dataRef.Name),
+		URL:           url,
 		ReferenceName: plumbing.ReferenceName(fmt.Sprintf("refs/tags/%s", dataRef.Version)),
 		Depth:         1,
 		Progress:      writer,
-		Auth:          auth,
+		Auth: &http.BasicAuth{
+			Username: creds.Username,
+			Password: creds.Password,
+		},
 	}
 
 	// outputErr := make(chan error, 1)

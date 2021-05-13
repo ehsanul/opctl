@@ -21,11 +21,13 @@ var _ = Context("_git", func() {
 				if err != nil {
 					panic(err)
 				}
-				objectUnderTest := New(dataDir, nil)
+				objectUnderTest := New(dataDir)
 
 				/* act */
 				_, actualError := objectUnderTest.TryResolve(
 					context.Background(),
+					make(chan model.Event),
+					"callID",
 					"/not/exists",
 				)
 
@@ -42,11 +44,13 @@ var _ = Context("_git", func() {
 					}
 					opRef := filepath.Join(wd, "../testdata/testop")
 
-					objectUnderTest := New(filepath.Dir(opRef), nil)
+					objectUnderTest := New(filepath.Dir(opRef))
 
 					/* act */
 					actualHandle, actualErr := objectUnderTest.TryResolve(
 						context.Background(),
+						make(chan model.Event),
+						"callID",
 						opRef,
 					)
 
@@ -62,12 +66,14 @@ var _ = Context("_git", func() {
 						if err != nil {
 							panic(err)
 						}
-						objectUnderTest := New(dataDir, nil)
+						objectUnderTest := New(dataDir)
 
 						/* act */
 						_, actualErr := objectUnderTest.TryResolve(
 							context.Background(),
-							"not/exists",
+							make(chan model.Event),
+							"callID",
+							"/not/exists",
 						)
 
 						/* assert */
@@ -83,12 +89,14 @@ var _ = Context("_git", func() {
 						if err != nil {
 							panic(err)
 						}
-						objectUnderTest := New(basePath, nil)
+						objectUnderTest := New(basePath)
 						expectedHandle := newHandle(filepath.Join(basePath, providedRef), providedRef)
 
 						/* act */
 						actualHandle, actualError := objectUnderTest.TryResolve(
 							context.Background(),
+							make(chan model.Event),
+							"callID",
 							providedRef,
 						)
 
@@ -110,7 +118,7 @@ var _ = Context("_git", func() {
 					panic(err)
 				}
 
-				objectUnderTest := New(basePath, nil)
+				objectUnderTest := New(basePath)
 
 				expectedResult := newHandle(filepath.Join(basePath, providedRef), providedRef)
 
@@ -129,6 +137,8 @@ var _ = Context("_git", func() {
 				go func() {
 					actualResult1, actualErr1 = objectUnderTest.TryResolve(
 						context.Background(),
+						make(chan model.Event),
+						"callID",
 						providedRef,
 					)
 					wg.Done()
@@ -138,6 +148,8 @@ var _ = Context("_git", func() {
 				go func() {
 					actualResult2, actualErr2 = objectUnderTest.TryResolve(
 						context.Background(),
+						make(chan model.Event),
+						"callID",
 						providedRef,
 					)
 					wg.Done()
@@ -164,7 +176,7 @@ var _ = Context("_git", func() {
 					panic(err)
 				}
 
-				objectUnderTest := New(basePath, nil)
+				objectUnderTest := New(basePath)
 
 				expectedResult1 := newHandle(filepath.Join(basePath, providedRef1), providedRef1)
 				expectedResult2 := newHandle(filepath.Join(basePath, providedRef2), providedRef2)
@@ -184,6 +196,8 @@ var _ = Context("_git", func() {
 				go func() {
 					actualResult1, actualErr1 = objectUnderTest.TryResolve(
 						context.Background(),
+						make(chan model.Event),
+						"callID",
 						providedRef1,
 					)
 					wg.Done()
@@ -193,6 +207,8 @@ var _ = Context("_git", func() {
 				go func() {
 					actualResult2, actualErr2 = objectUnderTest.TryResolve(
 						context.Background(),
+						make(chan model.Event),
+						"callID",
 						providedRef2,
 					)
 					wg.Done()

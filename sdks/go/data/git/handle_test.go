@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -27,7 +28,7 @@ var _ = Context("handle", func() {
 			}
 
 			/* act */
-			_, actualErr := objectUnderTest.GetContent(nil, providedContentPath)
+			_, actualErr := objectUnderTest.GetContent(context.Background(), nil, "callID", providedContentPath)
 
 			/* assert */
 			Expect(actualErr).To(BeNil())
@@ -45,7 +46,7 @@ var _ = Context("handle", func() {
 				}
 
 				/* act */
-				_, actualError := objectUnderTest.ListDescendants(nil)
+				_, actualError := objectUnderTest.ListDescendants(context.Background(), nil, "callID")
 
 				/* assert */
 				Expect(actualError.Error()).To(Equal("open doesnt-exist: no such file or directory"))
@@ -90,7 +91,7 @@ var _ = Context("handle", func() {
 				}
 
 				/* act */
-				actualContents, err := objectUnderTest.ListDescendants(nil)
+				actualContents, err := objectUnderTest.ListDescendants(context.Background(), nil, "callID")
 				if err != nil {
 					panic(err)
 				}
