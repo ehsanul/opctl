@@ -123,6 +123,7 @@ func (clr _caller) Call(
 		return outputs, err
 	}
 
+	// This is required for future ops, not sure why
 	// scratchDirPath := filepath.Join(clr.dataDirPath, "dcg", id)
 	// defer func() {
 	// 	os.RemoveAll(scratchDirPath)
