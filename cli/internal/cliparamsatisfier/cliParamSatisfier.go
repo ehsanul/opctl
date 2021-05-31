@@ -53,14 +53,6 @@ func (cps _CLIParamSatisfier) Satisfy(
 	for _, paramName := range getSortedParamNames(inputs) {
 		param := inputs[paramName]
 
-		if paramName == "github" { // Remitly specific, backwards compatibility prior to ssh-agent support
-			argMap[paramName] = &model.Value{Object: &map[string]interface{}{
-				"username":    "__ignored__",
-				"accessToken": "__ignored__",
-			}}
-			continue
-		}
-
 	paramLoop:
 		for {
 			var arg *model.Value
